@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,9 +17,14 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="ja" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
@@ -30,12 +36,20 @@ export default function RootLayout({
               </span>
               <span className="font-semibold tracking-tight">Parts Keeper</span>
             </Link>
-            <Link
-              href="/search"
-              className="text-sm text-[var(--accent-deep)] hover:underline"
-            >
-              型番から探す
-            </Link>
+            <nav className="flex items-center gap-4 text-sm">
+              <Link href="/search" className="text-[var(--accent-deep)] hover:underline">
+                型番検索
+              </Link>
+              {user ? (
+                <Link href="/my" className="text-[var(--accent-deep)] hover:underline">
+                  マイ家電
+                </Link>
+              ) : (
+                <Link href="/login" className="text-[var(--muted)] hover:text-[var(--accent-deep)]">
+                  ログイン
+                </Link>
+              )}
+            </nav>
           </div>
         </header>
         <main className="flex-1">{children}</main>

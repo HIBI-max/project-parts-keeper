@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
 
 interface ApplianceRow {
   id: string;
@@ -67,13 +68,16 @@ export default async function AppliancePage({
       </Link>
 
       <section className="mt-3 bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5">
-        <div className="text-xs text-[var(--muted)]">
-          {a.manufacturer} · {APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-xs text-[var(--muted)]">
+              {a.manufacturer} · {APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category}
+            </div>
+            <h1 className="text-2xl font-bold mt-1">{a.model_number}</h1>
+            {a.model_name && <div className="text-[var(--muted)] mt-1">{a.model_name}</div>}
+          </div>
+          <FavoriteButton applianceId={a.id} />
         </div>
-        <h1 className="text-2xl font-bold mt-1">{a.model_number}</h1>
-        {a.model_name && (
-          <div className="text-[var(--muted)] mt-1">{a.model_name}</div>
-        )}
 
         <dl className="mt-4 grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
           {a.release_year && (

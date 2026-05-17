@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { preprocessForOCR } from "@/lib/image-preprocess";
 
 type Status = "idle" | "scanning" | "done" | "error";
 
@@ -20,6 +21,7 @@ interface BarcodeCtor {
 export default function ScanPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [preview, setPreview] = useState<string | null>(null);
+  const [processed, setProcessed] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [barcodes, setBarcodes] = useState<string[]>([]);
   const [rawText, setRawText] = useState<string>("");
@@ -31,10 +33,11 @@ export default function ScanPage() {
     setCandidates([]);
     setBarcodes([]);
     setRawText("");
+    setProcessed(null);
     setPreview(URL.createObjectURL(file));
 
     try {
-      // 1) バーコード優先（軽量・即時）
+      // 1) バーコード優先（軽量・即時、原画像で）
       const BarcodeDetector = (window as unknown as { BarcodeDetector?: BarcodeCtor })
         .BarcodeDetector;
       if (BarcodeDetector) {
@@ -50,9 +53,19 @@ export default function ScanPage() {
         }
       }
 
-      // 2) OCR (Tesseract.js, eng) — モデル番号は ASCII なので英語データで十分
+      // 2) 画像前処理（グレースケール + コントラストストレッチ + Otsu 二値化）
+      let ocrInput: File | Blob = file;
+      try {
+        const pre = await preprocessForOCR(file);
+        ocrInput = pre.blob;
+        setProcessed(URL.createObjectURL(pre.blob));
+      } catch {
+        // 前処理失敗時は原画像にフォールバック
+      }
+
+      // 3) OCR (Tesseract.js, eng) — モデル番号は ASCII なので英語データで十分
       const Tesseract = await import("tesseract.js");
-      const { data } = await Tesseract.recognize(file, "eng");
+      const { data } = await Tesseract.recognize(ocrInput, "eng");
       const text = data.text ?? "";
       setRawText(text);
 
@@ -99,13 +112,27 @@ export default function ScanPage() {
       </label>
 
       {preview && (
-        <div className="mt-5">
-          {/* biome-ignore lint/a11y/useAltText: ユーザー撮影のラベル画像のため装飾扱い */}
-          <img
-            src={preview}
-            alt=""
-            className="w-full max-h-64 object-contain rounded-lg border border-[var(--card-border)] bg-[var(--card)]"
-          />
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <div>
+            <div className="text-xs text-[var(--muted)] mb-1">撮影画像</div>
+            {/* biome-ignore lint/a11y/useAltText: ユーザー撮影のラベル画像のため装飾扱い */}
+            <img
+              src={preview}
+              alt=""
+              className="w-full max-h-48 object-contain rounded border border-[var(--card-border)] bg-[var(--card)]"
+            />
+          </div>
+          {processed && (
+            <div>
+              <div className="text-xs text-[var(--muted)] mb-1">OCR 入力</div>
+              {/* biome-ignore lint/a11y/useAltText: 前処理後の二値化画像 */}
+              <img
+                src={processed}
+                alt=""
+                className="w-full max-h-48 object-contain rounded border border-[var(--card-border)] bg-white"
+              />
+            </div>
+          )}
         </div>
       )}
 
