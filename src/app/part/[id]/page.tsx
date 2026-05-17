@@ -1,0 +1,177 @@
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { PART_CATEGORY_LABEL, formatJPY } from "@/lib/format";
+import { searchRakuten } from "@/lib/rakuten";
+
+interface PartRow {
+  id: string;
+  name: string;
+  category: string;
+  kind: string;
+  manufacturer: string | null;
+  manufacturer_part_number: string | null;
+  description: string | null;
+}
+
+export default async function PartPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("parts")
+    .select(
+      "id, name, category, kind, manufacturer, manufacturer_part_number, description",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) notFound();
+  const part = data as PartRow;
+
+  // この部品が適合する家電一覧
+  const { data: fitData } = await supabase
+    .from("appliance_parts")
+    .select("fitment_note, appliances (id, manufacturer, model_number, model_name, category)")
+    .eq("part_id", id);
+
+  interface FitRow {
+    fitment_note: string | null;
+    appliances: {
+      id: string;
+      manufacturer: string;
+      model_number: string;
+      model_name: string | null;
+      category: string;
+    } | null;
+  }
+  const fitAppliances = ((fitData ?? []) as unknown as FitRow[])
+    .filter((r) => r.appliances)
+    .map((r) => ({ ...r.appliances!, fitment_note: r.fitment_note }));
+
+  // 楽天検索キーワード: 公式品番があれば最優先、なければ部品名（"内釜 SR-MPA101" 形式）。
+  // メーカー名を足すと AND 検索で結果が逆に減るのでフォールバックでは付けない。
+  const keyword = part.manufacturer_part_number ?? part.name;
+  const { items: rakutenItems, error: rakutenErr } = await searchRakuten(
+    keyword,
+    { hits: 6 },
+  );
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-6">
+      <Link
+        href="/"
+        className="text-xs text-[var(--muted)] hover:text-[var(--accent-deep)]"
+      >
+        ← トップへ
+      </Link>
+
+      <section className="mt-3 bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5">
+        <div className="text-xs text-[var(--muted)]">
+          {PART_CATEGORY_LABEL[part.category] ?? part.category} ·{" "}
+          {part.kind === "oem" ? "純正品" : "互換品"}
+        </div>
+        <h1 className="text-2xl font-bold mt-1">{part.name}</h1>
+        {part.manufacturer_part_number && (
+          <div className="text-sm text-[var(--muted)] mt-1">
+            メーカー品番: {part.manufacturer_part_number}
+          </div>
+        )}
+        {part.description && (
+          <p className="mt-3 text-sm leading-relaxed">{part.description}</p>
+        )}
+      </section>
+
+      <h2 className="mt-8 mb-3 text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+        楽天市場で探す
+      </h2>
+
+      {rakutenErr && (
+        <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-900">
+          楽天 API: {rakutenErr}
+          {rakutenErr.includes("RAKUTEN_APP_ID") && (
+            <div className="mt-1 text-xs">
+              `.env.local` に RAKUTEN_APP_ID を設定してください。
+            </div>
+          )}
+        </div>
+      )}
+
+      {!rakutenErr && rakutenItems.length === 0 && (
+        <div className="text-center py-8 text-sm text-[var(--muted)]">
+          楽天で在庫が見つかりませんでした。
+        </div>
+      )}
+
+      <ul className="space-y-2">
+        {rakutenItems.map((item) => (
+          <li key={item.itemCode}>
+            <a
+              href={item.affiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="flex gap-3 bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-3 hover:border-[var(--accent)] transition-colors"
+            >
+              {item.mediumImageUrl && (
+                <Image
+                  src={item.mediumImageUrl}
+                  alt=""
+                  width={72}
+                  height={72}
+                  className="shrink-0 rounded object-cover bg-white"
+                  unoptimized
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm leading-snug line-clamp-2">
+                  {item.itemName}
+                </div>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <div className="text-xs text-[var(--muted)] truncate">
+                    {item.shopName}
+                  </div>
+                  <div className="text-base font-semibold tabular-nums text-[var(--accent-deep)] shrink-0 ml-2">
+                    {formatJPY(item.itemPrice)}
+                  </div>
+                </div>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-6 text-xs text-[var(--muted)]">
+        ※ 楽天市場のリンクはアフィリエイト ID を含みます（設定時のみ）。
+      </p>
+
+      {fitAppliances.length > 1 && (
+        <section className="mt-10">
+          <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+            適合する他の機種（{fitAppliances.length}）
+          </h2>
+          <ul className="space-y-2">
+            {fitAppliances.map((a) => (
+              <li key={a.id}>
+                <Link
+                  href={`/appliance/${a.id}`}
+                  className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)]"
+                >
+                  <div className="text-xs text-[var(--muted)]">{a.manufacturer}</div>
+                  <div className="font-semibold mt-0.5">{a.model_number}</div>
+                  {a.model_name && (
+                    <div className="text-sm text-[var(--muted)] mt-0.5">{a.model_name}</div>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
