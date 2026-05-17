@@ -41,5 +41,7 @@ dev-server.log
 discover-output.json
 discover-output.log
 discover-clean.json
+vercel-link.log
+vercel-login.log
 
 .vercel
