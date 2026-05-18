@@ -3,8 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketplaceLinks } from "@/components/MarketplaceLinks";
+import { ShareButtons } from "@/components/ShareButtons";
 import { PART_CATEGORY_LABEL, formatJPY } from "@/lib/format";
-import { searchRakuten } from "@/lib/rakuten";
+import { cacheRakutenResults, getCachedRakuten, searchRakuten } from "@/lib/rakuten";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
@@ -91,10 +93,31 @@ export default async function PartPage({
   // 楽天検索キーワード: 公式品番があれば最優先、なければ部品名（"内釜 SR-MPA101" 形式）。
   // メーカー名を足すと AND 検索で結果が逆に減るのでフォールバックでは付けない。
   const keyword = part.manufacturer_part_number ?? part.name;
-  const { items: rakutenItems, error: rakutenErr } = await searchRakuten(
-    keyword,
-    { hits: 6 },
-  );
+
+  // 1. listings キャッシュを確認 (24h 以内のデータがあれば使う)
+  const cached = await getCachedRakuten(supabase, id, 24);
+  let rakutenItems: import("@/lib/rakuten").RakutenItem[] = [];
+  let rakutenErr: string | undefined;
+  let fromCache = false;
+
+  if (cached) {
+    rakutenItems = cached.items;
+    fromCache = true;
+  } else {
+    // 2. キャッシュなし → 楽天 API
+    const res = await searchRakuten(keyword, { hits: 6 });
+    rakutenItems = res.items;
+    rakutenErr = res.error;
+    // 3. 成功時は best-effort で listings に保存（admin client 必要）
+    if (rakutenItems.length > 0) {
+      try {
+        const admin = createAdminClient();
+        await cacheRakutenResults(admin, id, rakutenItems);
+      } catch {
+        // service_role 未設定ならスキップ
+      }
+    }
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
@@ -141,18 +164,27 @@ export default async function PartPage({
 
       {rakutenErr && (
         <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-900">
-          楽天 API: {rakutenErr}
-          {rakutenErr.includes("RAKUTEN_APP_ID") && (
-            <div className="mt-1 text-xs">
-              `.env.local` に RAKUTEN_APP_ID を設定してください。
-            </div>
-          )}
+          <div className="font-semibold">楽天市場で取得できませんでした</div>
+          <div className="text-xs mt-1 text-yellow-800">
+            一時的な障害の可能性があります。下の「他のサイトでも探す」から Amazon
+            ・メルカリ等もお試しください。
+          </div>
         </div>
       )}
 
       {!rakutenErr && rakutenItems.length === 0 && (
-        <div className="text-center py-8 text-sm text-[var(--muted)]">
-          楽天で在庫が見つかりませんでした。
+        <div className="rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-6 text-center text-sm">
+          <div className="text-[var(--muted)]">楽天市場で在庫が見つかりませんでした。</div>
+          <div className="text-xs text-[var(--muted)] mt-2">
+            下の「他のサイトでも探す」から Amazon・メルカリ・ヤフオク等もご確認ください。
+            中古サイトには在庫があるかもしれません。
+          </div>
+        </div>
+      )}
+
+      {fromCache && rakutenItems.length > 0 && (
+        <div className="mb-2 text-xs text-[var(--muted)]">
+          ⚡ キャッシュから表示しています (24 時間以内のデータ)
         </div>
       )}
 
@@ -219,6 +251,23 @@ export default async function PartPage({
             </div>
           </div>
           <span className="text-xs text-[var(--muted)] shrink-0">↗</span>
+        </a>
+      </section>
+
+      <ShareButtons
+        url={`https://project-parts-keeper.vercel.app/part/${part.id}`}
+        text={`${part.name}${part.manufacturer_part_number ? ` (${part.manufacturer_part_number})` : ""} の部品情報 - Parts Keeper`}
+      />
+
+      <section className="mt-8">
+        <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+          データに誤りを見つけたら
+        </h2>
+        <a
+          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[誤り報告] ${part.name}`)}&body=${encodeURIComponent(`URL: https://project-parts-keeper.vercel.app/part/${part.id}\n部品名: ${part.name}\n現在の品番: ${part.manufacturer_part_number ?? "(未登録)"}\n\n正しい情報:\n`)}`}
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--accent-deep)] hover:underline"
+        >
+          ✏️ この部品の情報を報告する
         </a>
       </section>
 

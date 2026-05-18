@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FavoriteMetaForm } from "@/components/FavoriteMetaForm";
 import { APPLIANCE_CATEGORY_LABEL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -120,40 +121,48 @@ export default async function MyPage() {
             const yearsLeft =
               a.parts_retention_until != null ? a.parts_retention_until - now : null;
             return (
-              <li key={a.id}>
-                <Link
-                  href={`/appliance/${a.id}`}
-                  className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)]"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="text-xs text-[var(--muted)]">
-                        {a.manufacturer} ·{" "}
-                        {APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category}
-                      </div>
-                      <div className="font-semibold mt-0.5">
-                        {f.nickname ?? a.model_number}
-                        {f.nickname && (
-                          <span className="ml-2 text-xs text-[var(--muted)] font-normal">
-                            ({a.model_number})
-                          </span>
-                        )}
-                      </div>
-                      {a.model_name && (
-                        <div className="text-sm text-[var(--muted)] mt-0.5">{a.model_name}</div>
+              <li
+                key={a.id}
+                className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-4"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <Link href={`/appliance/${a.id}`} className="min-w-0 flex-1 hover:opacity-80">
+                    <div className="text-xs text-[var(--muted)]">
+                      {a.manufacturer} ·{" "}
+                      {APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category}
+                    </div>
+                    <div className="font-semibold mt-0.5">
+                      {f.nickname ?? a.model_number}
+                      {f.nickname && (
+                        <span className="ml-2 text-xs text-[var(--muted)] font-normal">
+                          ({a.model_number})
+                        </span>
                       )}
                     </div>
-                    {eol ? (
-                      <span className="shrink-0 text-xs px-2 py-0.5 rounded bg-[var(--warn)]/10 text-[var(--warn)] border border-[var(--warn)]/30">
-                        保有期間終了
-                      </span>
-                    ) : yearsLeft != null && yearsLeft <= 2 ? (
-                      <span className="shrink-0 text-xs px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">
-                        残り{yearsLeft}年
-                      </span>
-                    ) : null}
-                  </div>
-                </Link>
+                    {a.model_name && (
+                      <div className="text-sm text-[var(--muted)] mt-0.5">{a.model_name}</div>
+                    )}
+                    {f.purchased_at && (
+                      <div className="text-xs text-[var(--muted)] mt-0.5">
+                        購入日: {f.purchased_at}
+                      </div>
+                    )}
+                  </Link>
+                  {eol ? (
+                    <span className="shrink-0 text-xs px-2 py-0.5 rounded bg-[var(--warn)]/10 text-[var(--warn)] border border-[var(--warn)]/30">
+                      保有期間終了
+                    </span>
+                  ) : yearsLeft != null && yearsLeft <= 2 ? (
+                    <span className="shrink-0 text-xs px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">
+                      残り{yearsLeft}年
+                    </span>
+                  ) : null}
+                </div>
+                <FavoriteMetaForm
+                  applianceId={a.id}
+                  initialNickname={f.nickname}
+                  initialPurchasedAt={f.purchased_at}
+                />
               </li>
             );
           })}

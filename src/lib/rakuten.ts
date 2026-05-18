@@ -37,6 +37,77 @@ interface RawItem {
   availability: number;
 }
 
+/**
+ * listings テーブルから直近 24h のキャッシュを取得（ない場合 null）。
+ * keyword: 楽天検索キーワード = 通常は manufacturer_part_number か part.name
+ */
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
+
+export interface CachedRakutenResult {
+  items: RakutenItem[];
+  source: "cache";
+  fetched_at: string;
+}
+
+export async function getCachedRakuten(
+  supabase: SupabaseClient<Database>,
+  partId: string,
+  maxAgeHours = 24,
+): Promise<CachedRakutenResult | null> {
+  const since = new Date(Date.now() - maxAgeHours * 3600_000).toISOString();
+  const { data } = await supabase
+    .from("listings")
+    .select("title, url, affiliate_url, price_jpy, in_stock, shop_name, fetched_at")
+    .eq("part_id", partId)
+    .eq("source", "rakuten")
+    .gte("fetched_at", since)
+    .order("price_jpy", { ascending: true })
+    .limit(10);
+  if (!data || data.length === 0) return null;
+  const items: RakutenItem[] = data.map((d) => ({
+    itemCode: d.url,
+    itemName: d.title,
+    itemPrice: d.price_jpy ?? 0,
+    itemUrl: d.url,
+    affiliateUrl: d.affiliate_url ?? d.url,
+    shopName: d.shop_name ?? "",
+    mediumImageUrl: null,
+    availability: d.in_stock === false ? 0 : 1,
+  }));
+  return { items, source: "cache", fetched_at: data[0].fetched_at };
+}
+
+/** searchRakuten 結果を listings テーブルに upsert (best-effort、エラー無視) */
+export async function cacheRakutenResults(
+  supabase: SupabaseClient<Database>,
+  partId: string,
+  items: RakutenItem[],
+): Promise<void> {
+  if (items.length === 0) return;
+  try {
+    await supabase
+      .from("listings")
+      .delete()
+      .eq("part_id", partId)
+      .eq("source", "rakuten");
+    await supabase.from("listings").insert(
+      items.slice(0, 10).map((it) => ({
+        part_id: partId,
+        source: "rakuten" as const,
+        title: it.itemName,
+        url: it.itemUrl,
+        affiliate_url: it.affiliateUrl,
+        price_jpy: it.itemPrice || null,
+        in_stock: it.availability === 1,
+        shop_name: it.shopName,
+      })),
+    );
+  } catch {
+    // best-effort - ignore errors
+  }
+}
+
 export async function searchRakuten(
   keyword: string,
   opts: { hits?: number } = {},

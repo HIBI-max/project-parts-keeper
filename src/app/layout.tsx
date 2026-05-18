@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Analytics } from "@/components/Analytics";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -97,6 +98,7 @@ export default async function RootLayout({
             <p>© Parts Keeper. 部品データは楽天市場 API およびユーザー投稿に基づいています。</p>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );

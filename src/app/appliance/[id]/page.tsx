@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ShareButtons } from "@/components/ShareButtons";
 import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
+import { getManufacturerLink } from "@/lib/manufacturer-links";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
@@ -91,6 +93,7 @@ export default async function AppliancePage({
   const parts = (partsData ?? []) as unknown as AppliancePartRow[];
   const now = new Date().getFullYear();
   const eol = a.parts_retention_until != null && a.parts_retention_until < now;
+  const manufacturerLink = getManufacturerLink(a.manufacturer, a.model_number);
 
   // JSON-LD 構造化データ
   const jsonLd = {
@@ -187,6 +190,24 @@ export default async function AppliancePage({
         対応パーツ
       </h2>
 
+      {manufacturerLink && (
+        <a
+          href={manufacturerLink.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center gap-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 hover:border-[var(--accent)]"
+        >
+          <span className="text-xl shrink-0">🏭</span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">{manufacturerLink.label}</div>
+            <div className="text-xs text-[var(--muted)] mt-0.5">
+              メーカー公式の正確な情報を確認できます
+            </div>
+          </div>
+          <span className="text-xs text-[var(--muted)] shrink-0">↗</span>
+        </a>
+      )}
+
       {parts.length === 0 ? (
         <div className="text-center py-8 text-sm text-[var(--muted)]">
           この機種の部品データはまだ登録されていません。
@@ -238,6 +259,23 @@ export default async function AppliancePage({
             ))}
         </ul>
       )}
+
+      <ShareButtons
+        url={`https://project-parts-keeper.vercel.app/appliance/${a.id}`}
+        text={`${a.manufacturer} ${a.model_number} の交換部品 - Parts Keeper`}
+      />
+
+      <section className="mt-8">
+        <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+          情報の修正報告
+        </h2>
+        <a
+          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[修正報告] ${a.manufacturer} ${a.model_number}`)}&body=${encodeURIComponent(`URL: https://project-parts-keeper.vercel.app/appliance/${a.id}\n機種: ${a.manufacturer} ${a.model_number}\n\n誤り or 補足:\n`)}`}
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--accent-deep)] hover:underline"
+        >
+          ✏️ この機種の情報を報告する
+        </a>
+      </section>
     </div>
   );
 }
