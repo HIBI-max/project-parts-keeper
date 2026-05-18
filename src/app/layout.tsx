@@ -76,8 +76,22 @@ export default async function RootLayout({
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-[var(--card-border)] bg-[var(--card)] mt-12">
-          <div className="mx-auto max-w-3xl px-4 py-6 text-xs text-[var(--muted)]">
-            © Parts Keeper. 部品データはユーザー投稿とメーカー公式情報に基づいています。
+          <div className="mx-auto max-w-3xl px-4 py-6 text-xs text-[var(--muted)] space-y-3">
+            <nav className="flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/privacy" className="hover:text-[var(--accent-deep)]">
+                プライバシーポリシー
+              </Link>
+              <Link href="/terms" className="hover:text-[var(--accent-deep)]">
+                利用規約
+              </Link>
+              <Link href="/commerce" className="hover:text-[var(--accent-deep)]">
+                特定商取引法表記
+              </Link>
+              <Link href="/contact" className="hover:text-[var(--accent-deep)]">
+                お問い合わせ
+              </Link>
+            </nav>
+            <p>© Parts Keeper. 部品データは楽天市場 API およびユーザー投稿に基づいています。</p>
           </div>
         </footer>
       </body>

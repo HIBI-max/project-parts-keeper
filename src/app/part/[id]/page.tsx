@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,37 @@ import { MarketplaceLinks } from "@/components/MarketplaceLinks";
 import { PART_CATEGORY_LABEL, formatJPY } from "@/lib/format";
 import { searchRakuten } from "@/lib/rakuten";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("parts")
+    .select("name, manufacturer, manufacturer_part_number, image_url, kind")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) return { title: "部品が見つかりませんでした — Parts Keeper" };
+
+  const title = `${data.name}${data.manufacturer_part_number ? ` (${data.manufacturer_part_number})` : ""} — Parts Keeper`;
+  const kindLabel = data.kind === "oem" ? "純正品" : "互換品";
+  const description = `${data.manufacturer ?? ""} ${data.name} の${kindLabel}を楽天市場・Amazon・Yahoo!ショッピング・メルカリ・ヤフオクで横断検索。`.trim();
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: data.image_url ? [data.image_url] : undefined,
+    },
+    twitter: { title, description, card: "summary_large_image" },
+  };
+}
 
 interface PartRow {
   id: string;

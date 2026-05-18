@@ -16,6 +16,7 @@ interface Appliance {
   release_year: number | null;
   production_end_year: number | null;
   parts_retention_until: number | null;
+  is_verified: boolean;
 }
 
 export default async function SearchPage({
@@ -34,11 +35,12 @@ export default async function SearchPage({
     const { data, error: dbErr } = await supabase
       .from("appliances")
       .select(
-        "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until",
+        "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, is_verified",
       )
       .or(`model_number.ilike.%${query}%,model_name.ilike.%${query}%`)
+      .order("is_verified", { ascending: false })
       .order("manufacturer", { ascending: true })
-      .limit(50);
+      .limit(100);
 
     if (dbErr) {
       error = dbErr.message;
@@ -84,6 +86,7 @@ export default async function SearchPage({
       )}
 
       {(() => {
+        // verified を先、unverified を後 (DB 側で sort 済み)
         // カテゴリ別グループ化
         const groups = new Map<string, Appliance[]>();
         for (const a of appliances) {
@@ -105,7 +108,9 @@ export default async function SearchPage({
                   <li key={a.id}>
                     <Link
                       href={`/appliance/${a.id}`}
-                      className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)] transition-colors"
+                      className={`block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)] transition-colors ${
+                        a.is_verified ? "" : "opacity-70"
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -117,11 +122,18 @@ export default async function SearchPage({
                             </div>
                           )}
                         </div>
-                        {eol && (
-                          <span className="shrink-0 text-xs px-2 py-0.5 rounded bg-[var(--warn)]/10 text-[var(--warn)] border border-[var(--warn)]/30">
-                            部品保有期間終了
-                          </span>
-                        )}
+                        <div className="shrink-0 flex flex-col items-end gap-1">
+                          {eol && (
+                            <span className="text-xs px-2 py-0.5 rounded bg-[var(--warn)]/10 text-[var(--warn)] border border-[var(--warn)]/30">
+                              保有期間終了
+                            </span>
+                          )}
+                          {!a.is_verified && (
+                            <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                              簡易表示
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </Link>
                   </li>

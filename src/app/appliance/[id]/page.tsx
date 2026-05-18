@@ -1,9 +1,40 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("appliances")
+    .select("manufacturer, model_number, model_name, category, parts_retention_until")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) return { title: "見つかりませんでした — Parts Keeper" };
+
+  const catLabel = APPLIANCE_CATEGORY_LABEL[data.category] ?? data.category;
+  const title = `${data.manufacturer} ${data.model_number} の交換部品 — Parts Keeper`;
+  const eolNote = data.parts_retention_until
+    ? `部品保有期間 ${data.parts_retention_until} 年まで。`
+    : "";
+  const description = `${data.manufacturer} ${catLabel} ${data.model_number}${data.model_name ? ` (${data.model_name})` : ""} に対応する純正・互換部品を楽天市場・Amazon・メルカリで横断検索。${eolNote}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description, card: "summary_large_image" },
+  };
+}
 
 interface ApplianceRow {
   id: string;
@@ -15,6 +46,7 @@ interface ApplianceRow {
   production_end_year: number | null;
   parts_retention_until: number | null;
   notes: string | null;
+  is_verified: boolean;
 }
 
 interface AppliancePartRow {
@@ -41,7 +73,7 @@ export default async function AppliancePage({
   const { data: appliance } = await supabase
     .from("appliances")
     .select(
-      "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, notes",
+      "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, notes, is_verified",
     )
     .eq("id", id)
     .maybeSingle();
@@ -60,8 +92,35 @@ export default async function AppliancePage({
   const now = new Date().getFullYear();
   const eol = a.parts_retention_until != null && a.parts_retention_until < now;
 
+  // JSON-LD 構造化データ
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${a.manufacturer} ${a.model_number}`,
+    description: a.model_name ?? undefined,
+    brand: { "@type": "Brand", name: a.manufacturer },
+    category: APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category,
+    sku: a.model_number,
+    productionDate: a.release_year ? `${a.release_year}-01-01` : undefined,
+    additionalProperty: a.parts_retention_until
+      ? [
+          {
+            "@type": "PropertyValue",
+            name: "部品保有期間",
+            value: `${a.parts_retention_until} 年まで`,
+          },
+        ]
+      : undefined,
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD は SEO 必須 */}
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: same
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href="/search"
         className="text-xs text-[var(--muted)] hover:text-[var(--accent-deep)]"
@@ -113,6 +172,14 @@ export default async function AppliancePage({
 
         {a.notes && (
           <p className="mt-4 text-sm text-[var(--muted)]">{a.notes}</p>
+        )}
+
+        {!a.is_verified && (
+          <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-[var(--muted)]">
+            この機種は自動収集された候補で、楽天市場での部品単体販売を確認できていません。
+            正確な部品情報はメーカー公式の部品検索ページもご確認ください。
+            メルカリ・ヤフオク等の中古サイトに在庫がある場合もあります。
+          </div>
         )}
       </section>
 

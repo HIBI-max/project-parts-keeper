@@ -81,6 +81,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          is_verified: boolean
           manufacturer: string
           model_name: string | null
           model_number: string
@@ -94,6 +95,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_verified?: boolean
           manufacturer: string
           model_name?: string | null
           model_number: string
@@ -107,6 +109,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_verified?: boolean
           manufacturer?: string
           model_name?: string | null
           model_number?: string
