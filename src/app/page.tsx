@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SearchInput } from "@/components/SearchInput";
 
 export default function HomePage() {
   return (
@@ -15,32 +16,11 @@ export default function HomePage() {
         </p>
       </section>
 
-      <form
-        action="/search"
-        className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-4 sm:p-5 shadow-sm"
-      >
-        <label
-          htmlFor="model"
-          className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider"
-        >
+      <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-4 sm:p-5 shadow-sm">
+        <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
           家電の型番
-        </label>
-        <div className="mt-2 flex gap-2">
-          <input
-            id="model"
-            name="q"
-            type="text"
-            required
-            placeholder="例: SR-MPA101 / NW-JZ10 / NR-F507WPX"
-            className="flex-1 px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2.5 rounded-lg bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-deep)] transition-colors"
-          >
-            検索
-          </button>
         </div>
+        <SearchInput placeholder="例: SR-MPA101 / NW-JZ10 / NR-F507WPX" />
         <p className="mt-3 text-xs text-[var(--muted)]">
           型番は家電本体の背面や底面のラベルに記載されています。
         </p>
@@ -53,7 +33,7 @@ export default function HomePage() {
             📷 カメラで型番を読み取る
           </Link>
         </div>
-      </form>
+      </div>
 
       <section className="mt-10">
         <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">

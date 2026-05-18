@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -191,6 +196,50 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          appliance_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          appliance_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          appliance_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          read_at?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_appliance_id_fkey"
+            columns: ["appliance_id"]
+            isOneToOne: false
+            referencedRelation: "appliances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parts: {
         Row: {
           category: Database["public"]["Enums"]["part_category"]
@@ -244,6 +293,7 @@ export type Database = {
         | "other"
         | "refrigerator"
       listing_source: "rakuten" | "amazon" | "yahoo" | "manufacturer"
+      notification_kind: "eol_warning" | "eol_expired" | "price_drop"
       part_category:
         | "inner_pot"
         | "filter"
@@ -397,6 +447,7 @@ export const Constants = {
         "refrigerator",
       ],
       listing_source: ["rakuten", "amazon", "yahoo", "manufacturer"],
+      notification_kind: ["eol_warning", "eol_expired", "price_drop"],
       part_category: [
         "inner_pot",
         "filter",
@@ -414,4 +465,3 @@ export const Constants = {
     },
   },
 } as const
-

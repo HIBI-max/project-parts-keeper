@@ -167,6 +167,29 @@ export default async function PartPage({
 
       <MarketplaceLinks keyword={keyword} />
 
+      <section className="mt-8">
+        <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+          交換手順を動画で見る
+        </h2>
+        <a
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${part.name} 交換 取り付け`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-lg border border-[var(--card-border)] bg-[#fff3f3] px-4 py-3 hover:border-[var(--accent)]"
+        >
+          <span className="text-2xl shrink-0">▶️</span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-red-700">
+              YouTube で「{part.name} 交換」を検索
+            </div>
+            <div className="text-xs text-[var(--muted)] mt-0.5">
+              実際の交換手順やコツを確認できます
+            </div>
+          </div>
+          <span className="text-xs text-[var(--muted)] shrink-0">↗</span>
+        </a>
+      </section>
+
       {fitAppliances.length > 1 && (
         <section className="mt-10">
           <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">

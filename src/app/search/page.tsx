@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { SearchInput } from "@/components/SearchInput";
 import { APPLIANCE_CATEGORY_LABEL } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
 
 interface SearchParams {
   q?: string;
@@ -50,22 +51,9 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <form action="/search" className="mb-6">
-        <div className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={query}
-            placeholder="型番を入力"
-            className="flex-1 px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2.5 rounded-lg bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-deep)]"
-          >
-            検索
-          </button>
-        </div>
-      </form>
+      <div className="mb-6">
+        <SearchInput initialValue={query} placeholder="型番を入力" />
+      </div>
 
       {query && (
         <p className="text-sm text-[var(--muted)] mb-3">

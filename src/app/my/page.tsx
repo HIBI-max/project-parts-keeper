@@ -34,6 +34,23 @@ export default async function MyPage() {
   const favorites = ((data ?? []) as unknown as FavoriteRow[]).filter((f) => f.appliances);
   const now = new Date().getFullYear();
 
+  // 未読通知
+  const { data: notifsData } = await supabase
+    .from("notifications")
+    .select("id, kind, title, body, url, created_at")
+    .is("read_at", null)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  interface Notif {
+    id: string;
+    kind: string;
+    title: string;
+    body: string | null;
+    url: string | null;
+    created_at: string;
+  }
+  const notifications = (notifsData ?? []) as Notif[];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="flex items-baseline justify-between">
@@ -50,6 +67,40 @@ export default async function MyPage() {
           </button>
         </form>
       </header>
+
+      {notifications.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
+            通知 ({notifications.length})
+          </h2>
+          <ul className="space-y-2">
+            {notifications.map((n) => (
+              <li
+                key={n.id}
+                className={`rounded-lg border px-4 py-3 ${
+                  n.kind === "eol_expired"
+                    ? "bg-[var(--warn)]/10 border-[var(--warn)]/30"
+                    : "bg-yellow-50 border-yellow-200"
+                }`}
+              >
+                <div className="font-semibold text-sm">
+                  {n.kind === "eol_expired" ? "⚠️ " : "📢 "}
+                  {n.title}
+                </div>
+                {n.body && <div className="mt-1 text-xs text-[var(--muted)]">{n.body}</div>}
+                {n.url && (
+                  <Link
+                    href={n.url}
+                    className="mt-2 inline-block text-xs text-[var(--accent-deep)] underline"
+                  >
+                    詳細を見る
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {favorites.length === 0 ? (
         <div className="mt-8 text-center py-10 text-sm text-[var(--muted)]">
