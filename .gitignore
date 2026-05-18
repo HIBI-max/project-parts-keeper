@@ -45,3 +45,5 @@ vercel-link.log
 vercel-login.log
 
 .vercel
+candidate-appliances.json
+candidate-appliances.log
