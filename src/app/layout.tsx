@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     title: "Parts Keeper — 家電の部品を一発で見つける",
     description: "まだ動く家電を、部品で延命する。",
   },
+  verification: {
+    google: "iVZXGvPaVMFiNFlGS5gm7sG5d-LbgeAS0zycGHzx8-I",
+  },
 };
 
 export const viewport: Viewport = {

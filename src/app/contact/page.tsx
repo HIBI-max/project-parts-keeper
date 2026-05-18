@@ -25,12 +25,12 @@ export default function ContactPage() {
         <div>
           <h2 className="font-semibold text-base mb-2">サポート・要望・取材</h2>
           <p>以下のメールアドレスへご連絡ください：</p>
-          <p className="mt-2 font-mono text-base bg-[var(--card)] border border-[var(--card-border)] rounded px-3 py-2 inline-block">
-            contact@parts-keeper.example
-          </p>
-          <p className="mt-2 text-xs text-[var(--muted)]">
-            ※ 本番運用時は実際のメールアドレスに置き換えてください。
-          </p>
+          <a
+            href="mailto:parts.keeper.contact@gmail.com"
+            className="mt-2 inline-block font-mono text-base bg-[var(--card)] border border-[var(--card-border)] rounded px-3 py-2 hover:border-[var(--accent)]"
+          >
+            parts.keeper.contact@gmail.com
+          </a>
         </div>
 
         <div>
