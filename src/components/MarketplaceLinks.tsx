@@ -13,6 +13,26 @@ interface Marketplace {
   fg: string;
 }
 
+const AMAZON_TAG = process.env.NEXT_PUBLIC_AMAZON_TAG;
+const VC_SID = process.env.NEXT_PUBLIC_VC_SID;
+const VC_PID = process.env.NEXT_PUBLIC_VC_PID;
+
+/** ValueCommerce のリファラル URL に包んで Yahoo!ショッピング に飛ばす */
+function wrapValueCommerce(targetUrl: string): string {
+  if (!VC_SID || !VC_PID) return targetUrl;
+  return `https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=${VC_SID}&pid=${VC_PID}&vc_url=${encodeURIComponent(targetUrl)}`;
+}
+
+function amazonSearchUrl(kw: string): string {
+  const base = `https://www.amazon.co.jp/s?k=${encodeURIComponent(kw)}`;
+  return AMAZON_TAG ? `${base}&tag=${AMAZON_TAG}` : base;
+}
+
+function yahooShoppingUrl(kw: string): string {
+  const base = `https://shopping.yahoo.co.jp/search?p=${encodeURIComponent(kw)}`;
+  return wrapValueCommerce(base);
+}
+
 const MARKETPLACES: Marketplace[] = [
   {
     name: "mercari",
@@ -37,7 +57,7 @@ const MARKETPLACES: Marketplace[] = [
     name: "yahoo-shopping",
     label: "Yahoo!ショッピング",
     emoji: "🛒",
-    search: (kw) => `https://shopping.yahoo.co.jp/search?p=${encodeURIComponent(kw)}`,
+    search: yahooShoppingUrl,
     note: "新品",
     bg: "#fef7ec",
     fg: "#8c4a00",
@@ -46,7 +66,7 @@ const MARKETPLACES: Marketplace[] = [
     name: "amazon",
     label: "Amazon",
     emoji: "📦",
-    search: (kw) => `https://www.amazon.co.jp/s?k=${encodeURIComponent(kw)}`,
+    search: amazonSearchUrl,
     note: "新品",
     bg: "#fff7e6",
     fg: "#8a5300",
@@ -65,7 +85,7 @@ export function MarketplaceLinks({ keyword }: Props) {
             key={mp.name}
             href={mp.search(keyword)}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer sponsored"
             className="flex items-center gap-2 rounded-lg border border-[var(--card-border)] px-3 py-3 hover:border-[var(--accent)] transition-colors"
             style={{ background: mp.bg }}
           >
@@ -74,9 +94,7 @@ export function MarketplaceLinks({ keyword }: Props) {
               <div className="text-sm font-semibold" style={{ color: mp.fg }}>
                 {mp.label}
               </div>
-              {mp.note && (
-                <div className="text-xs text-[var(--muted)] truncate">{mp.note}</div>
-              )}
+              {mp.note && <div className="text-xs text-[var(--muted)] truncate">{mp.note}</div>}
             </div>
             <span className="text-xs text-[var(--muted)] shrink-0">↗</span>
           </a>

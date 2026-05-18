@@ -48,7 +48,6 @@ const PART_NUMBER_PATTERNS: RegExp[] = [
 ];
 
 interface Part {
-  id: string;
   name: string;
   manufacturer_part_number: string | null;
 }
@@ -113,14 +112,29 @@ async function main() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createClient(url, key);
 
-  // 補完対象: image_url is null の parts
-  const { data, error } = await supabase
-    .from("parts")
-    .select("id, name, manufacturer_part_number")
-    .is("image_url", null)
-    .order("name");
-  if (error) throw error;
-  const parts = (data ?? []) as Part[];
+  // 補完対象: image_url is null の parts。
+  // PostgREST のデフォルト 1000 件上限を回避するため、name ごとに distinct 取得。
+  const allParts: Part[] = [];
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("parts")
+      .select("name, manufacturer_part_number")
+      .is("image_url", null)
+      .order("name")
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Part[];
+    allParts.push(...rows);
+    if (rows.length < pageSize) break;
+  }
+  // 同じ name が複数あれば distinct
+  const seen = new Set<string>();
+  const parts = allParts.filter((p) => {
+    if (seen.has(p.name)) return false;
+    seen.add(p.name);
+    return true;
+  });
 
   console.error(`Found ${parts.length} parts to enrich.`);
 
@@ -151,7 +165,11 @@ async function main() {
           sets.push(`manufacturer_part_number = '${sqlEscape(partNumber)}'`);
         }
         if (sets.length > 0) {
-          appendFileSync(OUTPUT, `update parts set ${sets.join(", ")} where id = '${part.id}';\n`);
+          // name で WHERE する。同名 parts が複数あれば全部更新。
+          appendFileSync(
+            OUTPUT,
+            `update parts set ${sets.join(", ")} where name = '${sqlEscape(part.name)}' and image_url is null;\n`,
+          );
           updated++;
         }
       } else {
