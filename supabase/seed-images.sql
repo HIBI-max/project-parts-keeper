@@ -1,0 +1,44 @@
+-- Auto-generated from discover-output.json
+-- 品番抽出ができたクエリ（=実商品が該当）の image_url のみ採用
+
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/colorsstore/cabinet/item/1369/58078133368_1.jpg?_ex=128x128' where name = '糸くずフィルター NA-FA8K2' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-m26.jpg?_ex=128x128' where name = '内釜 SR-CFE109' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/2cube02/cabinet/pn1are50m20/pn1are50m20-02.jpg?_ex=128x128' where name = '内釜 SR-CVSX100' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/idosawa/cabinet/kaden2/are50h74.jpg?_ex=128x128' where name = '内釜 SR-FD106' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/idosawa/cabinet/kaden2/are50h74.jpg?_ex=128x128' where name = '内釜 SR-FD107' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-h74.jpg?_ex=128x128' where name = '内釜 SR-FD108' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-h74.jpg?_ex=128x128' where name = '内釜 SR-FD109' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-m26.jpg?_ex=128x128' where name = '内釜 SR-FE101' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-m26.jpg?_ex=128x128' where name = '内釜 SR-FE109' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/masutakadenki/cabinet/parts/are50-m88.jpg?_ex=128x128' where name = '内釜 SR-MPA10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/partscomstore/cabinet/shohin01/panasonic/pa006001/are50-m78.jpg?_ex=128x128' where name = '内釜 SR-MPA101' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/partscomstore/cabinet/shohin01/panasonic/pa006001/are50-m78.jpg?_ex=128x128' where name = '内釜 SR-MPA102' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/partscomstore/cabinet/shohin01/panasonic/pa006001/are50-m99.jpg?_ex=128x128' where name = '内釜 SR-NB10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/2cube02/cabinet/pn1are50m20/pn1are50m20-02.jpg?_ex=128x128' where name = '内釜 SR-VSX100' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/2cube02/cabinet/pn1are50m20/pn1are50m20-02.jpg?_ex=128x128' where name = '内釜 SR-VSX101' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/2cube02/cabinet/pn1are50m20/pn1are50m20-02.jpg?_ex=128x128' where name = '内釜 SR-VSX108' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/2cube02/cabinet/pn1are50m20/pn1are50m20-02.jpg?_ex=128x128' where name = '内釜 SR-VSX109' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/selectshopdaysmarket/cabinet/bulk_212/5000000112473_1.jpg?_ex=128x128' where name = '紙パック EC-VR3S' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/kadecoco/cabinet/buhin/jpc1139n.jpg?_ex=128x128' where name = '内ぶた JPC-A100' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/kadecoco/cabinet/buhin/jpc1139n.jpg?_ex=128x128' where name = '内ぶた JPC-B100' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/kadecoco/cabinet/buhin/jpc1139n.jpg?_ex=128x128' where name = '内ぶた JPC-G100' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/peacedenki/cabinet/mitsubishi-parts/m15x16340.jpg?_ex=128x128' where name = '内釜 NJ-AWB10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/mitsubishi/imgrc0056547244.jpg?_ex=128x128' where name = '内釜 NJ-AWBX10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/peacedenki/cabinet/mitsubishi-m1/m15w96340.jpg?_ex=128x128' where name = '内釜 NJ-VWA10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/peacedenki/cabinet/mitsubishi-m1/m15x18340.jpg?_ex=128x128' where name = '内釜 NJ-VWB10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/toshiba/44066331.jpg?_ex=128x128' where name = 'ドアパッキン GR-T550FZ' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/toshiba/44082555.jpg?_ex=128x128' where name = '野菜ケース GR-T550FZ' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/toshiba/44066331.jpg?_ex=128x128' where name = 'ドアパッキン GR-T600FZ' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/toshiba/44082553.jpg?_ex=128x128' where name = '野菜ケース GR-T600FZ' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/dcc/cabinet/toshiba/320ww305.jpg?_ex=128x128' where name = '内釜 RC-100VXS' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/mokku-store/cabinet/toshiba/imgrc0166818444.jpg?_ex=128x128' where name = '内ぶた RC-100VXS' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/mokku-store/cabinet/toshiba/imgrc0166818444.jpg?_ex=128x128' where name = '内ぶた RC-10E8VS' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/mokku-store/cabinet/toshiba/imgrc0166818444.jpg?_ex=128x128' where name = '内ぶた RC-10E8VX' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/mokku-store/cabinet/toshiba/imgrc0166818444.jpg?_ex=128x128' where name = '内ぶた RC-10VXV' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/crown-musen/cabinet/zojirushi/b527-6b.jpg?_ex=128x128' where name = '内釜 NP-RY05' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/crown-musen/cabinet/zojirushi/b527-6b.jpg?_ex=128x128' where name = '内釜 NP-RZ05' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/a-price/cabinet/orj/17/0-4974305220264.jpg?_ex=128x128' where name = '内釜 NW-JC10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/kadecoco/cabinet/buhin/b654-6b.jpg?_ex=128x128' where name = '内釜 NW-JZ10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/crown-musen/cabinet/zojirushi/b575-6b.jpg?_ex=128x128' where name = '内釜 NW-LA10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/konan/cabinet/ki114/4974305170323_1.jpg?_ex=128x128' where name = '内釜 NW-NA10' and image_url is null;
+update parts set image_url = 'https://thumbnail.image.rakuten.co.jp/@0_mall/kadecoco/cabinet/buhin/b5856b.jpg?_ex=128x128' where name = '内釜 NW-VC10' and image_url is null;

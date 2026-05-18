@@ -13,6 +13,7 @@ interface PartRow {
   manufacturer: string | null;
   manufacturer_part_number: string | null;
   description: string | null;
+  image_url: string | null;
 }
 
 export default async function PartPage({
@@ -26,7 +27,7 @@ export default async function PartPage({
   const { data } = await supabase
     .from("parts")
     .select(
-      "id, name, category, kind, manufacturer, manufacturer_part_number, description",
+      "id, name, category, kind, manufacturer, manufacturer_part_number, description, image_url",
     )
     .eq("id", id)
     .maybeSingle();
@@ -72,16 +73,30 @@ export default async function PartPage({
       </Link>
 
       <section className="mt-3 bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5">
-        <div className="text-xs text-[var(--muted)]">
-          {PART_CATEGORY_LABEL[part.category] ?? part.category} ·{" "}
-          {part.kind === "oem" ? "純正品" : "互換品"}
-        </div>
-        <h1 className="text-2xl font-bold mt-1">{part.name}</h1>
-        {part.manufacturer_part_number && (
-          <div className="text-sm text-[var(--muted)] mt-1">
-            メーカー品番: {part.manufacturer_part_number}
+        <div className="flex gap-4">
+          {part.image_url && (
+            <Image
+              src={part.image_url}
+              alt={part.name}
+              width={96}
+              height={96}
+              className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 object-contain rounded border border-[var(--card-border)] bg-white"
+              unoptimized
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="text-xs text-[var(--muted)]">
+              {PART_CATEGORY_LABEL[part.category] ?? part.category} ·{" "}
+              {part.kind === "oem" ? "純正品" : "互換品"}
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold mt-1 break-words">{part.name}</h1>
+            {part.manufacturer_part_number && (
+              <div className="text-sm text-[var(--muted)] mt-1 font-mono">
+                品番: {part.manufacturer_part_number}
+              </div>
+            )}
           </div>
-        )}
+        </div>
         {part.description && (
           <p className="mt-3 text-sm leading-relaxed">{part.description}</p>
         )}

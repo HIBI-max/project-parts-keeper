@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -25,6 +26,7 @@ interface AppliancePartRow {
     kind: string;
     manufacturer: string | null;
     manufacturer_part_number: string | null;
+    image_url: string | null;
   } | null;
 }
 
@@ -50,7 +52,7 @@ export default async function AppliancePage({
   const { data: partsData } = await supabase
     .from("appliance_parts")
     .select(
-      "fitment_note, parts (id, name, category, kind, manufacturer, manufacturer_part_number)",
+      "fitment_note, parts (id, name, category, kind, manufacturer, manufacturer_part_number, image_url)",
     )
     .eq("appliance_id", id);
 
@@ -130,28 +132,40 @@ export default async function AppliancePage({
               <li key={p!.id}>
                 <Link
                   href={`/part/${p!.id}`}
-                  className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)] transition-colors"
+                  className="flex gap-3 bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-3 hover:border-[var(--accent)] transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="text-xs text-[var(--muted)]">
-                        {PART_CATEGORY_LABEL[p!.category] ?? p!.category} ·{" "}
-                        {p!.kind === "oem" ? "純正" : "互換"}
-                      </div>
-                      <div className="font-semibold mt-0.5">{p!.name}</div>
-                      {p!.manufacturer_part_number && (
-                        <div className="text-xs text-[var(--muted)] mt-0.5">
-                          品番: {p!.manufacturer_part_number}
-                        </div>
-                      )}
-                      {fitment_note && (
-                        <div className="text-xs mt-1 text-[var(--accent-deep)]">
-                          {fitment_note}
-                        </div>
-                      )}
+                  {p!.image_url ? (
+                    <Image
+                      src={p!.image_url}
+                      alt=""
+                      width={56}
+                      height={56}
+                      className="shrink-0 w-14 h-14 object-contain rounded border border-[var(--card-border)] bg-white"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="shrink-0 w-14 h-14 grid place-items-center rounded border border-dashed border-[var(--card-border)] text-[var(--muted)] text-2xl">
+                      ⚙
                     </div>
-                    <span className="shrink-0 text-[var(--accent-deep)] text-sm">→</span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-[var(--muted)]">
+                      {PART_CATEGORY_LABEL[p!.category] ?? p!.category} ·{" "}
+                      {p!.kind === "oem" ? "純正" : "互換"}
+                    </div>
+                    <div className="font-semibold mt-0.5 leading-snug">{p!.name}</div>
+                    {p!.manufacturer_part_number && (
+                      <div className="text-xs text-[var(--muted)] mt-0.5 font-mono">
+                        {p!.manufacturer_part_number}
+                      </div>
+                    )}
+                    {fitment_note && (
+                      <div className="text-xs mt-1 text-[var(--accent-deep)]">
+                        {fitment_note}
+                      </div>
+                    )}
                   </div>
+                  <span className="self-center shrink-0 text-[var(--accent-deep)]">→</span>
                 </Link>
               </li>
             ))}

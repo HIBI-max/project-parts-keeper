@@ -61,12 +61,18 @@ interface DiscoveryResult {
   part_category: string;
   keyword: string;
   hits: number;
+  top_image_url: string | null;
   candidates: { part_number: string; count: number; sample_title: string }[];
+}
+
+interface RakutenItemRaw {
+  itemName?: string;
+  mediumImageUrls?: Array<{ imageUrl: string } | string>;
 }
 
 interface RakutenSearchRes {
   hits?: number;
-  Items?: Array<{ itemName?: string }>;
+  Items?: RakutenItemRaw[];
 }
 
 async function searchRakuten(keyword: string): Promise<RakutenSearchRes> {
@@ -143,10 +149,19 @@ async function main() {
       console.error(`[query] ${fullKeyword}`);
       try {
         const r = await searchRakuten(fullKeyword);
-        const titles = (r.Items ?? [])
-          .map((it) => it.itemName ?? "")
-          .filter(Boolean);
+        const items = r.Items ?? [];
+        const titles = items.map((it) => it.itemName ?? "").filter(Boolean);
         const candidates = extractPartNumbers(titles, a.model_number).slice(0, 5);
+
+        // 先頭ヒットの mediumImageUrl を採用（部品単体写真が出やすい）
+        let topImage: string | null = null;
+        for (const it of items) {
+          const first = it.mediumImageUrls?.[0];
+          if (!first) continue;
+          topImage = typeof first === "string" ? first : first.imageUrl;
+          if (topImage) break;
+        }
+
         results.push({
           appliance: a.model_number,
           manufacturer: a.manufacturer,
@@ -154,6 +169,7 @@ async function main() {
           part_category: kw,
           keyword: fullKeyword,
           hits: r.hits ?? 0,
+          top_image_url: topImage,
           candidates,
         });
       } catch (e) {
