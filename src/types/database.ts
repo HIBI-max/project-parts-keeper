@@ -279,6 +279,57 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          appliance_id: string | null
+          body: string
+          created_at: string
+          id: string
+          part_id: string | null
+          rating: number | null
+          target: Database["public"]["Enums"]["review_target"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appliance_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          rating?: number | null
+          target: Database["public"]["Enums"]["review_target"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appliance_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          rating?: number | null
+          target?: Database["public"]["Enums"]["review_target"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appliance_id_fkey"
+            columns: ["appliance_id"]
+            isOneToOne: false
+            referencedRelation: "appliances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -310,6 +361,7 @@ export type Database = {
         | "turntable"
         | "ice_tray"
       part_kind: "oem" | "compatible"
+      review_target: "part" | "appliance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -465,6 +517,7 @@ export const Constants = {
         "ice_tray",
       ],
       part_kind: ["oem", "compatible"],
+      review_target: ["part", "appliance"],
     },
   },
 } as const

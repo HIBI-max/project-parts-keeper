@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { Reviews } from "@/components/Reviews";
 import { ShareButtons } from "@/components/ShareButtons";
 import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
 import { getManufacturerLink } from "@/lib/manufacturer-links";
@@ -259,6 +260,8 @@ export default async function AppliancePage({
             ))}
         </ul>
       )}
+
+      <Reviews target="appliance" targetId={a.id} />
 
       <ShareButtons
         url={`https://project-parts-keeper.vercel.app/appliance/${a.id}`}

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketplaceLinks } from "@/components/MarketplaceLinks";
+import { Reviews } from "@/components/Reviews";
 import { ShareButtons } from "@/components/ShareButtons";
 import { PART_CATEGORY_LABEL, formatJPY } from "@/lib/format";
 import { cacheRakutenResults, getCachedRakuten, searchRakuten } from "@/lib/rakuten";
@@ -253,6 +254,8 @@ export default async function PartPage({
           <span className="text-xs text-[var(--muted)] shrink-0">↗</span>
         </a>
       </section>
+
+      <Reviews target="part" targetId={part.id} />
 
       <ShareButtons
         url={`https://project-parts-keeper.vercel.app/part/${part.id}`}
