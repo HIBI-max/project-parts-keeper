@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { MarketplaceLinks } from "@/components/MarketplaceLinks";
 import { PART_CATEGORY_LABEL, formatJPY } from "@/lib/format";
 import { searchRakuten } from "@/lib/rakuten";
+import { createClient } from "@/lib/supabase/server";
 
 interface PartRow {
   id: string;
@@ -163,6 +164,8 @@ export default async function PartPage({
       <p className="mt-6 text-xs text-[var(--muted)]">
         ※ 楽天市場のリンクはアフィリエイト ID を含みます（設定時のみ）。
       </p>
+
+      <MarketplaceLinks keyword={keyword} />
 
       {fitAppliances.length > 1 && (
         <section className="mt-10">
