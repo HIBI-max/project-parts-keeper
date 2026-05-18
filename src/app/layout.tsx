@@ -8,6 +8,19 @@ export const metadata: Metadata = {
   description:
     "炊飯器の内釜、洗濯機のフィルター、リモコン、バッテリー。型番から純正・互換部品を検索して、楽天・Amazon の在庫と価格を横断比較。",
   applicationName: "Parts Keeper",
+  metadataBase: new URL("https://project-parts-keeper.vercel.app"),
+  openGraph: {
+    title: "Parts Keeper — 家電の部品を一発で見つける",
+    description:
+      "型番から純正・互換部品を検索して、楽天・Amazon の在庫と価格を横断比較。",
+    type: "website",
+    locale: "ja_JP",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Parts Keeper — 家電の部品を一発で見つける",
+    description: "まだ動く家電を、部品で延命する。",
+  },
 };
 
 export const viewport: Viewport = {
