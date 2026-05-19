@@ -76,8 +76,11 @@ const MARKETPLACES: Marketplace[] = [
 export function MarketplaceLinks({ keyword }: Props) {
   return (
     <section className="mt-8">
-      <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+      <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
         他のサイトでも探す
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 normal-case">
+          PR
+        </span>
       </h2>
       <div className="grid grid-cols-2 gap-2">
         {MARKETPLACES.map((mp) => (

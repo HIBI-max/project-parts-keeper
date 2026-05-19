@@ -159,8 +159,11 @@ export default async function PartPage({
         )}
       </section>
 
-      <h2 className="mt-8 mb-3 text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+      <h2 className="mt-8 mb-3 text-sm font-semibold text-[var(--muted)] uppercase tracking-wider flex items-center gap-2">
         楽天市場で探す
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 normal-case">
+          PR
+        </span>
       </h2>
 
       {rakutenErr && (
