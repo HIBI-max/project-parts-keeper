@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShareButtons } from "@/components/ShareButtons";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog";
+import { createClient } from "@/lib/supabase/server";
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
@@ -24,6 +25,80 @@ export async function generateMetadata({
   };
 }
 
+interface LinkedItem {
+  type: "appliance" | "part";
+  id: string;
+  label: string;
+  href: string;
+}
+
+async function resolveBlogLinks(
+  content: string,
+): Promise<{ content: string; linked: LinkedItem[] }> {
+  const supabase = await createClient();
+  const linked: LinkedItem[] = [];
+
+  // [appliance:MODEL_NUMBER] or [appliance:MODEL_NUMBER|表示テキスト]
+  const applianceMatches = [...content.matchAll(/\[appliance:([^\]|]+?)(?:\|([^\]]+))?\]/g)];
+  const modelNumbers = [...new Set(applianceMatches.map((m) => m[1].trim()))];
+  const appMap = new Map<string, { id: string; name: string }>();
+  if (modelNumbers.length > 0) {
+    const { data } = await supabase
+      .from("appliances")
+      .select("id, manufacturer, model_number, model_name")
+      .in("model_number", modelNumbers);
+    for (const r of data ?? []) {
+      appMap.set(r.model_number, {
+        id: r.id,
+        name: `${r.manufacturer} ${r.model_number}`,
+      });
+    }
+  }
+
+  // [part:MPN] or [part:MPN|表示テキスト]
+  const partMatches = [...content.matchAll(/\[part:([^\]|]+?)(?:\|([^\]]+))?\]/g)];
+  const mpns = [...new Set(partMatches.map((m) => m[1].trim()))];
+  const partMap = new Map<string, { id: string; name: string }>();
+  if (mpns.length > 0) {
+    const { data } = await supabase
+      .from("parts")
+      .select("id, name, manufacturer_part_number")
+      .in("manufacturer_part_number", mpns);
+    for (const r of data ?? []) {
+      if (r.manufacturer_part_number)
+        partMap.set(r.manufacturer_part_number, { id: r.id, name: r.name });
+    }
+  }
+
+  // 置換
+  let replaced = content;
+  replaced = replaced.replace(/\[appliance:([^\]|]+?)(?:\|([^\]]+))?\]/g, (_, key, label) => {
+    const k = key.trim();
+    const info = appMap.get(k);
+    if (!info) return label || k;
+    const text = (label || k).trim();
+    if (!linked.find((l) => l.id === info.id))
+      linked.push({
+        type: "appliance",
+        id: info.id,
+        label: info.name,
+        href: `/appliance/${info.id}`,
+      });
+    return `<a href="/appliance/${info.id}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
+  });
+  replaced = replaced.replace(/\[part:([^\]|]+?)(?:\|([^\]]+))?\]/g, (_, key, label) => {
+    const k = key.trim();
+    const info = partMap.get(k);
+    if (!info) return label || k;
+    const text = (label || k).trim();
+    if (!linked.find((l) => l.id === info.id))
+      linked.push({ type: "part", id: info.id, label: info.name, href: `/part/${info.id}` });
+    return `<a href="/part/${info.id}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
+  });
+
+  return { content: replaced, linked };
+}
+
 export default async function BlogPostPage({
   params,
 }: {
@@ -33,7 +108,9 @@ export default async function BlogPostPage({
   const post = getBlogPost(slug);
   if (!post) notFound();
 
-  const html = post.content
+  const { content: resolvedContent, linked } = await resolveBlogLinks(post.content);
+
+  const html = resolvedContent
     .split(/\n\n+/)
     .map((block) => {
       const t = block.trim();
@@ -88,6 +165,29 @@ export default async function BlogPostPage({
         // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted local content
         dangerouslySetInnerHTML={{ __html: html }}
       />
+
+      {linked.length > 0 && (
+        <section className="mt-10 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
+          <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+            この記事で紹介した機種・部品
+          </h2>
+          <ul className="space-y-2">
+            {linked.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-[var(--card-border)] bg-white px-3 py-2 hover:border-[var(--accent)]"
+                >
+                  <span className="text-sm font-medium truncate">{item.label}</span>
+                  <span className="text-xs text-[var(--muted)] shrink-0">
+                    {item.type === "appliance" ? "機種詳細 →" : "部品詳細 →"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <ShareButtons
         url={`https://project-parts-keeper.vercel.app/blog/${post.slug}`}
