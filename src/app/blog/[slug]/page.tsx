@@ -123,10 +123,10 @@ export default async function BlogPostPage({
           .filter((r) => !r.match(/^\|[\s\-:]+\|/))
           .map((r) => r.split("|").slice(1, -1).map((c) => c.trim()));
         if (cells.length === 0) return "";
-        const head = `<thead><tr>${cells[0].map((c) => `<th>${c}</th>`).join("")}</tr></thead>`;
+        const head = `<thead><tr>${cells[0].map((c) => `<th>${formatInline(c)}</th>`).join("")}</tr></thead>`;
         const body = cells
           .slice(1)
-          .map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`)
+          .map((row) => `<tr>${row.map((c) => `<td>${formatInline(c)}</td>`).join("")}</tr>`)
           .join("");
         return `<table class="w-full border-collapse my-4"><tbody>${head}${body}</tbody></table>`;
       }
