@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { MarketplaceLinks } from "@/components/MarketplaceLinks";
 import { Reviews } from "@/components/Reviews";
 import { ShareButtons } from "@/components/ShareButtons";
 import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
@@ -95,6 +96,12 @@ export default async function AppliancePage({
   const now = new Date().getFullYear();
   const eol = a.parts_retention_until != null && a.parts_retention_until < now;
   const manufacturerLink = getManufacturerLink(a.manufacturer, a.model_number);
+
+  // EC 横断検索のキーワード。フィルター系カテゴリは「型番 + フィルター」で精度を上げる。
+  const filterCategories = ["air_purifier", "air_conditioner"];
+  const marketplaceKeyword = filterCategories.includes(a.category)
+    ? `${a.model_number} フィルター`
+    : a.model_number;
 
   // JSON-LD 構造化データ
   const jsonLd = {
@@ -210,8 +217,10 @@ export default async function AppliancePage({
       )}
 
       {parts.length === 0 ? (
-        <div className="text-center py-8 text-sm text-[var(--muted)]">
-          この機種の部品データはまだ登録されていません。
+        <div className="rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-6 text-center text-sm text-[var(--muted)]">
+          この機種の個別部品データはまだ登録されていません。
+          <br />
+          下の「他のサイトでも探す」から型番で交換部品（フィルター等）を検索できます。
         </div>
       ) : (
         <ul className="space-y-2">
@@ -260,6 +269,8 @@ export default async function AppliancePage({
             ))}
         </ul>
       )}
+
+      <MarketplaceLinks keyword={marketplaceKeyword} />
 
       <Reviews target="appliance" targetId={a.id} />
 

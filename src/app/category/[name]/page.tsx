@@ -10,7 +10,8 @@ type ApplianceCategory =
   | "vacuum"
   | "air_conditioner"
   | "microwave"
-  | "refrigerator";
+  | "refrigerator"
+  | "air_purifier";
 
 const VALID_CATEGORIES: ApplianceCategory[] = [
   "rice_cooker",
@@ -19,6 +20,7 @@ const VALID_CATEGORIES: ApplianceCategory[] = [
   "air_conditioner",
   "microwave",
   "refrigerator",
+  "air_purifier",
 ];
 
 function isValidCategory(s: string): s is ApplianceCategory {

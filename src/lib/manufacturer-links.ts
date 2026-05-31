@@ -56,6 +56,21 @@ const MANUFACTURERS: Record<string, ManufacturerInfo> = {
     name: "マキタ 部品検索",
     partsSearchUrl: () => "https://www.makita.co.jp/product/parts/",
   },
+  バルミューダ: {
+    name: "BALMUDA 消耗品・アクセサリー",
+    partsSearchUrl: () => "https://www.balmuda.com/jp/store/accessory",
+    note: "公式ストアで交換フィルターを販売",
+  },
+  カドー: {
+    name: "cado 公式オンラインストア",
+    partsSearchUrl: () => "https://store.cado.com/",
+    note: "交換用フィルターを販売",
+  },
+  アイリスオーヤマ: {
+    name: "アイリスオーヤマ 別売品・消耗品",
+    partsSearchUrl: () => "https://www.irisplaza.co.jp/",
+    note: "型番で消耗品を検索",
+  },
 };
 
 export function getManufacturerLink(

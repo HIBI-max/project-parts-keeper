@@ -201,6 +201,35 @@ const SEARCH_SPECS: SearchSpec[] = [
     keywords: ["ベジータ 部品", "東芝 冷蔵庫 製氷皿"],
     modelPatterns: [/\bGR-[A-Z][0-9]+[A-Z]+\b/g],
   },
+
+  // ===== 空気清浄機 =====
+  {
+    manufacturer: "シャープ",
+    category: "air_purifier",
+    keywords: [
+      "シャープ 空気清浄機 集じんフィルター",
+      "プラズマクラスター 空気清浄機 フィルター",
+    ],
+    modelPatterns: [/\b(?:KI|KC|FU)-[A-Z]{1,3}[0-9]{2,3}[A-Z0-9]*\b/g],
+  },
+  {
+    manufacturer: "Panasonic",
+    category: "air_purifier",
+    keywords: ["パナソニック 空気清浄機 集じんフィルター", "ナノイー 空気清浄機 フィルター"],
+    modelPatterns: [/\bF-(?:V|P)[A-Z]{1,2}[0-9]{2,3}[A-Z0-9]*\b/g],
+  },
+  {
+    manufacturer: "ダイキン",
+    category: "air_purifier",
+    keywords: ["ダイキン 空気清浄機 集じんフィルター", "ダイキン ストリーマ 空気清浄機 フィルター"],
+    modelPatterns: [/\b(?:MCK|ACK|TCK|MCZ|MC)[0-9]{2,3}[A-Z]{0,2}\b/g],
+  },
+  {
+    manufacturer: "日立",
+    category: "air_purifier",
+    keywords: ["日立 空気清浄機 フィルター", "日立 加湿空気清浄機 フィルター"],
+    modelPatterns: [/\bEP-[A-Z]{1,3}[0-9]{2,3}[A-Z]?\b/g],
+  },
 ];
 
 interface CandidateModel {

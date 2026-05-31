@@ -346,6 +346,7 @@ export type Database = {
         | "microwave"
         | "other"
         | "refrigerator"
+        | "air_purifier"
       listing_source: "rakuten" | "amazon" | "yahoo" | "manufacturer"
       notification_kind: "eol_warning" | "eol_expired" | "price_drop"
       part_category:
@@ -500,6 +501,7 @@ export const Constants = {
         "microwave",
         "other",
         "refrigerator",
+        "air_purifier",
       ],
       listing_source: ["rakuten", "amazon", "yahoo", "manufacturer"],
       notification_kind: ["eol_warning", "eol_expired", "price_drop"],

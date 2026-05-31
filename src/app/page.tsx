@@ -27,6 +27,7 @@ export default async function HomePage() {
     "air_conditioner",
     "microwave",
     "refrigerator",
+    "air_purifier",
   ].map((c) => ({ category: c, count: categoryCounts.get(c) ?? 0 }));
 
   // お気に入り数の多い人気機種 (上位 6)

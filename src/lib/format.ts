@@ -10,6 +10,7 @@ export const APPLIANCE_CATEGORY_LABEL: Record<string, string> = {
   air_conditioner: "エアコン",
   microwave: "電子レンジ",
   refrigerator: "冷蔵庫",
+  air_purifier: "空気清浄機",
   other: "その他",
 };
 

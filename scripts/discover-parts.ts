@@ -26,6 +26,7 @@ const SEARCH_KEYWORDS_BY_CATEGORY: Record<string, string[]> = {
   air_conditioner: ["フィルター", "リモコン"],
   microwave: ["ターンテーブル", "扉パッキン"],
   refrigerator: ["製氷皿", "ドアパッキン", "野菜ケース"],
+  air_purifier: ["集じんフィルター", "脱臭フィルター", "加湿フィルター"],
   other: [],
 };
 
@@ -45,6 +46,11 @@ const PART_NUMBER_PATTERNS: RegExp[] = [
   /\bM[0-9]{2}[A-Z][0-9]{4,6}\b/g,         // 三菱 内釜 (M15X16340)
   /\bSPB-[A-Z0-9-]+\b/g,                   // シャープ 系
   /\b[0-9]{3}[A-Z][0-9]{4}\b/g,            // 東芝 (320A2450)
+  /\bFZ-[A-Z][0-9]{2}[A-Z]{1,2}[0-9]?\b/g, // シャープ 空気清浄機フィルター (FZ-D50HF/FZ-Y80MF)
+  /\bFZ-[A-Z]{2}[0-9]{2}[A-Z][0-9]?\b/g,   // シャープ Ag+/プレフィルター (FZ-AG01K1/FZ-PF51F1)
+  /\bF-Z[A-Z]{2}[0-9]{2,3}\b/g,            // Panasonic 空気清浄機フィルター (F-ZXLP90/F-ZXJP50)
+  /\bKAF[A-Z]?[0-9]{3}[A-Z][0-9]\b/g,      // ダイキン 集じんフィルター (KAFP029A4/KAFP085A4)
+  /\bEPF-[A-Z]{2,3}[0-9]{2,3}[A-Z0-9]*\b/g, // 日立 空気清浄機フィルター (EPF-MVG90H)
   /\b\d{8,12}\b/g,                         // 数字のみ品番（シャープ・東芝冷蔵庫等）
 ];
 
