@@ -41,15 +41,16 @@ async function resolveBlogLinks(
   // [appliance:MODEL_NUMBER] or [appliance:MODEL_NUMBER|表示テキスト]
   const applianceMatches = [...content.matchAll(/\[appliance:([^\]|]+?)(?:\|([^\]]+))?\]/g)];
   const modelNumbers = [...new Set(applianceMatches.map((m) => m[1].trim()))];
-  const appMap = new Map<string, { id: string; name: string }>();
+  const appMap = new Map<string, { id: string; slug: string; name: string }>();
   if (modelNumbers.length > 0) {
     const { data } = await supabase
       .from("appliances")
-      .select("id, manufacturer, model_number, model_name")
+      .select("id, slug, manufacturer, model_number, model_name")
       .in("model_number", modelNumbers);
     for (const r of data ?? []) {
       appMap.set(r.model_number, {
         id: r.id,
+        slug: r.slug,
         name: `${r.manufacturer} ${r.model_number}`,
       });
     }
@@ -58,15 +59,15 @@ async function resolveBlogLinks(
   // [part:MPN] or [part:MPN|表示テキスト]
   const partMatches = [...content.matchAll(/\[part:([^\]|]+?)(?:\|([^\]]+))?\]/g)];
   const mpns = [...new Set(partMatches.map((m) => m[1].trim()))];
-  const partMap = new Map<string, { id: string; name: string }>();
+  const partMap = new Map<string, { id: string; slug: string; name: string }>();
   if (mpns.length > 0) {
     const { data } = await supabase
       .from("parts")
-      .select("id, name, manufacturer_part_number")
+      .select("id, slug, name, manufacturer_part_number")
       .in("manufacturer_part_number", mpns);
     for (const r of data ?? []) {
       if (r.manufacturer_part_number)
-        partMap.set(r.manufacturer_part_number, { id: r.id, name: r.name });
+        partMap.set(r.manufacturer_part_number, { id: r.id, slug: r.slug, name: r.name });
     }
   }
 
@@ -82,9 +83,9 @@ async function resolveBlogLinks(
         type: "appliance",
         id: info.id,
         label: info.name,
-        href: `/appliance/${info.id}`,
+        href: `/appliance/${info.slug}`,
       });
-    return `<a href="/appliance/${info.id}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
+    return `<a href="/appliance/${info.slug}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
   });
   replaced = replaced.replace(/\[part:([^\]|]+?)(?:\|([^\]]+))?\]/g, (_, key, label) => {
     const k = key.trim();
@@ -92,8 +93,8 @@ async function resolveBlogLinks(
     if (!info) return label || k;
     const text = (label || k).trim();
     if (!linked.find((l) => l.id === info.id))
-      linked.push({ type: "part", id: info.id, label: info.name, href: `/part/${info.id}` });
-    return `<a href="/part/${info.id}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
+      linked.push({ type: "part", id: info.id, label: info.name, href: `/part/${info.slug}` });
+    return `<a href="/part/${info.slug}" class="text-[var(--accent-deep)] underline underline-offset-2 hover:text-[var(--accent)]">${text}</a>`;
   });
 
   return { content: replaced, linked };

@@ -9,6 +9,7 @@ interface FavoriteRow {
   purchased_at: string | null;
   appliances: {
     id: string;
+    slug: string;
     manufacturer: string;
     model_number: string;
     model_name: string | null;
@@ -28,7 +29,7 @@ export default async function MyPage() {
   const { data } = await supabase
     .from("favorites")
     .select(
-      "nickname, purchased_at, appliances (id, manufacturer, model_number, model_name, category, parts_retention_until)",
+      "nickname, purchased_at, appliances (id, slug, manufacturer, model_number, model_name, category, parts_retention_until)",
     )
     .order("created_at", { ascending: false });
 
@@ -126,7 +127,7 @@ export default async function MyPage() {
                 className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-4"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <Link href={`/appliance/${a.id}`} className="min-w-0 flex-1 hover:opacity-80">
+                  <Link href={`/appliance/${a.slug}`} className="min-w-0 flex-1 hover:opacity-80">
                     <div className="text-xs text-[var(--muted)]">
                       {a.manufacturer} ·{" "}
                       {APPLIANCE_CATEGORY_LABEL[a.category] ?? a.category}

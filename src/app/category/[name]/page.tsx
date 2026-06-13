@@ -42,6 +42,7 @@ export async function generateMetadata({
 
 interface Appliance {
   id: string;
+  slug: string;
   manufacturer: string;
   model_number: string;
   model_name: string | null;
@@ -61,7 +62,7 @@ export default async function CategoryPage({
   const { data, count } = await supabase
     .from("appliances")
     .select(
-      "id, manufacturer, model_number, model_name, parts_retention_until, is_verified",
+      "id, slug, manufacturer, model_number, model_name, parts_retention_until, is_verified",
       { count: "exact" },
     )
     .eq("category", name)
@@ -107,7 +108,7 @@ export default async function CategoryPage({
                 return (
                   <li key={a.id}>
                     <Link
-                      href={`/appliance/${a.id}`}
+                      href={`/appliance/${a.slug}`}
                       className={`block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)] ${
                         a.is_verified ? "" : "opacity-70"
                       }`}

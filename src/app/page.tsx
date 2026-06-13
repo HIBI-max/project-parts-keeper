@@ -33,13 +33,14 @@ export default async function HomePage() {
   // お気に入り数の多い人気機種 (上位 6)
   const { data: popularData } = await supabase
     .from("favorites")
-    .select("appliance_id, appliances!inner (id, manufacturer, model_number, model_name, category)")
+    .select("appliance_id, appliances!inner (id, slug, manufacturer, model_number, model_name, category)")
     .eq("appliances.is_verified", true)
     .limit(100);
   interface PopRow {
     appliance_id: string;
     appliances: {
       id: string;
+      slug: string;
       manufacturer: string;
       model_number: string;
       model_name: string | null;
@@ -122,7 +123,7 @@ export default async function HomePage() {
             {popular.map((p) => (
               <li key={p.id}>
                 <Link
-                  href={`/appliance/${p.id}`}
+                  href={`/appliance/${p.slug}`}
                   className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)]"
                 >
                   <div className="text-xs text-[var(--muted)]">

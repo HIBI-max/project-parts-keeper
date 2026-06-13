@@ -9,6 +9,7 @@ interface SearchParams {
 
 interface Appliance {
   id: string;
+  slug: string;
   manufacturer: string;
   category: string;
   model_number: string;
@@ -35,7 +36,7 @@ export default async function SearchPage({
     const { data, error: dbErr } = await supabase
       .from("appliances")
       .select(
-        "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, is_verified",
+        "id, slug, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, is_verified",
       )
       .or(`model_number.ilike.%${query}%,model_name.ilike.%${query}%`)
       .order("is_verified", { ascending: false })
@@ -107,7 +108,7 @@ export default async function SearchPage({
                 return (
                   <li key={a.id}>
                     <Link
-                      href={`/appliance/${a.id}`}
+                      href={`/appliance/${a.slug}`}
                       className={`block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)] transition-colors ${
                         a.is_verified ? "" : "opacity-70"
                       }`}

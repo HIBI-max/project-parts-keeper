@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { MarketplaceLinks } from "@/components/MarketplaceLinks";
 import { Reviews } from "@/components/Reviews";
@@ -10,17 +10,20 @@ import { APPLIANCE_CATEGORY_LABEL, PART_CATEGORY_LABEL } from "@/lib/format";
 import { getManufacturerLink } from "@/lib/manufacturer-links";
 import { createClient } from "@/lib/supabase/server";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
+  const isUUID = UUID_RE.test(slug);
   const { data } = await supabase
     .from("appliances")
     .select("manufacturer, model_number, model_name, category, parts_retention_until")
-    .eq("id", id)
+    .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
   if (!data) return { title: "見つかりませんでした — Parts Keeper" };
@@ -42,6 +45,7 @@ export async function generateMetadata({
 
 interface ApplianceRow {
   id: string;
+  slug: string;
   manufacturer: string;
   category: string;
   model_number: string;
@@ -57,6 +61,7 @@ interface AppliancePartRow {
   fitment_note: string | null;
   parts: {
     id: string;
+    slug: string;
     name: string;
     category: string;
     kind: string;
@@ -69,17 +74,28 @@ interface AppliancePartRow {
 export default async function AppliancePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
+
+  // UUID で来た場合（旧ブックマーク・インデックス済み URL）は slug にリダイレクト
+  if (UUID_RE.test(slug)) {
+    const { data } = await supabase
+      .from("appliances")
+      .select("slug")
+      .eq("id", slug)
+      .maybeSingle();
+    if (!data) notFound();
+    permanentRedirect(`/appliance/${data.slug}`);
+  }
 
   const { data: appliance } = await supabase
     .from("appliances")
     .select(
-      "id, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, notes, is_verified",
+      "id, slug, manufacturer, category, model_number, model_name, release_year, production_end_year, parts_retention_until, notes, is_verified",
     )
-    .eq("id", id)
+    .eq("slug", slug)
     .maybeSingle();
 
   if (!appliance) notFound();
@@ -88,9 +104,9 @@ export default async function AppliancePage({
   const { data: partsData } = await supabase
     .from("appliance_parts")
     .select(
-      "fitment_note, parts (id, name, category, kind, manufacturer, manufacturer_part_number, image_url)",
+      "fitment_note, parts (id, slug, name, category, kind, manufacturer, manufacturer_part_number, image_url)",
     )
-    .eq("appliance_id", id);
+    .eq("appliance_id", a.id);
 
   const parts = (partsData ?? []) as unknown as AppliancePartRow[];
   const now = new Date().getFullYear();
@@ -102,6 +118,8 @@ export default async function AppliancePage({
   const marketplaceKeyword = filterCategories.includes(a.category)
     ? `${a.model_number} フィルター`
     : a.model_number;
+
+  const pageUrl = `https://project-parts-keeper.vercel.app/appliance/${a.slug}`;
 
   // JSON-LD 構造化データ
   const jsonLd = {
@@ -229,7 +247,7 @@ export default async function AppliancePage({
             .map(({ parts: p, fitment_note }) => (
               <li key={p!.id}>
                 <Link
-                  href={`/part/${p!.id}`}
+                  href={`/part/${p!.slug}`}
                   className="flex gap-3 bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-3 hover:border-[var(--accent)] transition-colors"
                 >
                   {p!.image_url ? (
@@ -275,7 +293,7 @@ export default async function AppliancePage({
       <Reviews target="appliance" targetId={a.id} />
 
       <ShareButtons
-        url={`https://project-parts-keeper.vercel.app/appliance/${a.id}`}
+        url={pageUrl}
         text={`${a.manufacturer} ${a.model_number} の交換部品 - Parts Keeper`}
       />
 
@@ -284,7 +302,7 @@ export default async function AppliancePage({
           情報の修正報告
         </h2>
         <a
-          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[修正報告] ${a.manufacturer} ${a.model_number}`)}&body=${encodeURIComponent(`URL: https://project-parts-keeper.vercel.app/appliance/${a.id}\n機種: ${a.manufacturer} ${a.model_number}\n\n誤り or 補足:\n`)}`}
+          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[修正報告] ${a.manufacturer} ${a.model_number}`)}&body=${encodeURIComponent(`URL: ${pageUrl}\n機種: ${a.manufacturer} ${a.model_number}\n\n誤り or 補足:\n`)}`}
           className="inline-flex items-center gap-1.5 text-sm text-[var(--accent-deep)] hover:underline"
         >
           ✏️ この機種の情報を報告する

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { MarketplaceLinks } from "@/components/MarketplaceLinks";
 import { Reviews } from "@/components/Reviews";
 import { ShareButtons } from "@/components/ShareButtons";
@@ -10,17 +10,20 @@ import { cacheRakutenResults, getCachedRakuten, searchRakuten } from "@/lib/raku
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
+  const isUUID = UUID_RE.test(slug);
   const { data } = await supabase
     .from("parts")
     .select("name, manufacturer, manufacturer_part_number, image_url, kind")
-    .eq("id", id)
+    .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
   if (!data) return { title: "部品が見つかりませんでした — Parts Keeper" };
@@ -43,6 +46,7 @@ export async function generateMetadata({
 
 interface PartRow {
   id: string;
+  slug: string;
   name: string;
   category: string;
   kind: string;
@@ -55,17 +59,28 @@ interface PartRow {
 export default async function PartPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
+
+  // UUID で来た場合（旧ブックマーク・インデックス済み URL）は slug にリダイレクト
+  if (UUID_RE.test(slug)) {
+    const { data } = await supabase
+      .from("parts")
+      .select("slug")
+      .eq("id", slug)
+      .maybeSingle();
+    if (!data) notFound();
+    permanentRedirect(`/part/${data.slug}`);
+  }
 
   const { data } = await supabase
     .from("parts")
     .select(
-      "id, name, category, kind, manufacturer, manufacturer_part_number, description, image_url",
+      "id, slug, name, category, kind, manufacturer, manufacturer_part_number, description, image_url",
     )
-    .eq("id", id)
+    .eq("slug", slug)
     .maybeSingle();
 
   if (!data) notFound();
@@ -74,13 +89,14 @@ export default async function PartPage({
   // この部品が適合する家電一覧
   const { data: fitData } = await supabase
     .from("appliance_parts")
-    .select("fitment_note, appliances (id, manufacturer, model_number, model_name, category)")
-    .eq("part_id", id);
+    .select("fitment_note, appliances (id, slug, manufacturer, model_number, model_name, category)")
+    .eq("part_id", part.id);
 
   interface FitRow {
     fitment_note: string | null;
     appliances: {
       id: string;
+      slug: string;
       manufacturer: string;
       model_number: string;
       model_name: string | null;
@@ -92,11 +108,9 @@ export default async function PartPage({
     .map((r) => ({ ...r.appliances!, fitment_note: r.fitment_note }));
 
   // 楽天検索キーワード: 公式品番があれば最優先、なければ部品名（"内釜 SR-MPA101" 形式）。
-  // メーカー名を足すと AND 検索で結果が逆に減るのでフォールバックでは付けない。
   const keyword = part.manufacturer_part_number ?? part.name;
 
-  // 1. listings キャッシュを確認 (24h 以内のデータがあれば使う)
-  const cached = await getCachedRakuten(supabase, id, 24);
+  const cached = await getCachedRakuten(supabase, part.id, 24);
   let rakutenItems: import("@/lib/rakuten").RakutenItem[] = [];
   let rakutenErr: string | undefined;
   let fromCache = false;
@@ -105,20 +119,20 @@ export default async function PartPage({
     rakutenItems = cached.items;
     fromCache = true;
   } else {
-    // 2. キャッシュなし → 楽天 API
     const res = await searchRakuten(keyword, { hits: 6 });
     rakutenItems = res.items;
     rakutenErr = res.error;
-    // 3. 成功時は best-effort で listings に保存（admin client 必要）
     if (rakutenItems.length > 0) {
       try {
         const admin = createAdminClient();
-        await cacheRakutenResults(admin, id, rakutenItems);
+        await cacheRakutenResults(admin, part.id, rakutenItems);
       } catch {
         // service_role 未設定ならスキップ
       }
     }
   }
+
+  const pageUrl = `https://project-parts-keeper.vercel.app/part/${part.slug}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
@@ -261,7 +275,7 @@ export default async function PartPage({
       <Reviews target="part" targetId={part.id} />
 
       <ShareButtons
-        url={`https://project-parts-keeper.vercel.app/part/${part.id}`}
+        url={pageUrl}
         text={`${part.name}${part.manufacturer_part_number ? ` (${part.manufacturer_part_number})` : ""} の部品情報 - Parts Keeper`}
       />
 
@@ -270,7 +284,7 @@ export default async function PartPage({
           データに誤りを見つけたら
         </h2>
         <a
-          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[誤り報告] ${part.name}`)}&body=${encodeURIComponent(`URL: https://project-parts-keeper.vercel.app/part/${part.id}\n部品名: ${part.name}\n現在の品番: ${part.manufacturer_part_number ?? "(未登録)"}\n\n正しい情報:\n`)}`}
+          href={`mailto:parts.keeper.contact@gmail.com?subject=${encodeURIComponent(`[誤り報告] ${part.name}`)}&body=${encodeURIComponent(`URL: ${pageUrl}\n部品名: ${part.name}\n現在の品番: ${part.manufacturer_part_number ?? "(未登録)"}\n\n正しい情報:\n`)}`}
           className="inline-flex items-center gap-1.5 text-sm text-[var(--accent-deep)] hover:underline"
         >
           ✏️ この部品の情報を報告する
@@ -286,7 +300,7 @@ export default async function PartPage({
             {fitAppliances.map((a) => (
               <li key={a.id}>
                 <Link
-                  href={`/appliance/${a.id}`}
+                  href={`/appliance/${a.slug}`}
                   className="block bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-4 py-3 hover:border-[var(--accent)]"
                 >
                   <div className="text-xs text-[var(--muted)]">{a.manufacturer}</div>

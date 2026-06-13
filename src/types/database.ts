@@ -89,6 +89,7 @@ export type Database = {
           parts_retention_until: number | null
           production_end_year: number | null
           release_year: number | null
+          slug: string
         }
         Insert: {
           category: Database["public"]["Enums"]["appliance_category"]
@@ -103,6 +104,7 @@ export type Database = {
           parts_retention_until?: number | null
           production_end_year?: number | null
           release_year?: number | null
+          slug?: string
         }
         Update: {
           category?: Database["public"]["Enums"]["appliance_category"]
@@ -117,6 +119,7 @@ export type Database = {
           parts_retention_until?: number | null
           production_end_year?: number | null
           release_year?: number | null
+          slug?: string
         }
         Relationships: []
       }
@@ -254,6 +257,7 @@ export type Database = {
           manufacturer: string | null
           manufacturer_part_number: string | null
           name: string
+          slug: string
         }
         Insert: {
           category: Database["public"]["Enums"]["part_category"]
@@ -265,6 +269,7 @@ export type Database = {
           manufacturer?: string | null
           manufacturer_part_number?: string | null
           name: string
+          slug?: string
         }
         Update: {
           category?: Database["public"]["Enums"]["part_category"]
@@ -276,6 +281,7 @@ export type Database = {
           manufacturer?: string | null
           manufacturer_part_number?: string | null
           name?: string
+          slug?: string
         }
         Relationships: []
       }
