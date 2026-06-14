@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 
 interface Suggestion {
   id: string;
+  slug: string;
   manufacturer: string;
   model_number: string;
   model_name: string | null;
@@ -41,7 +42,7 @@ export function SearchInput({ initialValue = "", showButton = true, placeholder 
       const supabase = createClient();
       const { data } = await supabase
         .from("appliances")
-        .select("id, manufacturer, model_number, model_name, category")
+        .select("id, slug, manufacturer, model_number, model_name, category")
         .or(`model_number.ilike.${q}%,model_name.ilike.%${q}%`)
         .order("manufacturer")
         .limit(8);
@@ -70,7 +71,7 @@ export function SearchInput({ initialValue = "", showButton = true, placeholder 
       // suggestion クリック時は appliance 詳細へ直行
       const picked = suggestions.find((s) => s.model_number === target);
       if (picked) {
-        router.push(`/appliance/${picked.id}`);
+        router.push(`/appliance/${picked.slug}`);
         return;
       }
     }
@@ -89,7 +90,7 @@ export function SearchInput({ initialValue = "", showButton = true, placeholder 
       if (highlight >= 0) {
         e.preventDefault();
         const picked = suggestions[highlight];
-        router.push(`/appliance/${picked.id}`);
+        router.push(`/appliance/${picked.slug}`);
       }
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -135,7 +136,7 @@ export function SearchInput({ initialValue = "", showButton = true, placeholder 
                 type="button"
                 onClick={() => {
                   setOpen(false);
-                  router.push(`/appliance/${s.id}`);
+                  router.push(`/appliance/${s.slug}`);
                 }}
                 onMouseEnter={() => setHighlight(i)}
                 className={`w-full text-left px-3 py-2 flex items-baseline gap-2 ${

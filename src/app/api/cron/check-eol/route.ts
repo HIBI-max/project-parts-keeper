@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     user_id: string;
     appliance_id: string;
     appliances: {
+      slug: string;
       model_number: string;
       manufacturer: string;
       parts_retention_until: number | null;
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
   const { data: favs, error: favErr } = await admin
     .from("favorites")
     .select(
-      "user_id, appliance_id, appliances (model_number, manufacturer, parts_retention_until)",
+      "user_id, appliance_id, appliances (slug, model_number, manufacturer, parts_retention_until)",
     );
   if (favErr) {
     return NextResponse.json({ error: favErr.message }, { status: 500 });
@@ -100,7 +101,7 @@ export async function GET(request: Request) {
       kind,
       title,
       body,
-      url: `/appliance/${f.appliance_id}`,
+      url: `/appliance/${f.appliances.slug}`,
     });
   }
 
