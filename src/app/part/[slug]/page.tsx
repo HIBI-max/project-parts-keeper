@@ -64,17 +64,7 @@ export default async function PartPage({
   const { slug } = await params;
   const supabase = await createClient();
 
-  // UUID で来た場合（旧ブックマーク・インデックス済み URL）は slug にリダイレクト
-  if (UUID_RE.test(slug)) {
-    const { data } = await supabase
-      .from("parts")
-      .select("slug")
-      .eq("id", slug)
-      .maybeSingle();
-    if (!data) notFound();
-    permanentRedirect(`/part/${data.slug}`);
-  }
-
+  // 正規 slug で検索。見つかった場合はそのまま描画（品番なしパーツは slug=UUID だが自己参照しない）。
   const { data } = await supabase
     .from("parts")
     .select(
@@ -83,7 +73,18 @@ export default async function PartPage({
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!data) notFound();
+  // slug で見つからず UUID 形式なら旧 URL とみなして canonical slug へ 308 リダイレクト。
+  if (!data) {
+    if (UUID_RE.test(slug)) {
+      const { data: byId } = await supabase
+        .from("parts")
+        .select("slug")
+        .eq("id", slug)
+        .maybeSingle();
+      if (byId && byId.slug !== slug) permanentRedirect(`/part/${byId.slug}`);
+    }
+    notFound();
+  }
   const part = data as PartRow;
 
   // この部品が適合する家電一覧

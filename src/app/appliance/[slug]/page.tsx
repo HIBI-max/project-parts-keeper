@@ -79,17 +79,7 @@ export default async function AppliancePage({
   const { slug } = await params;
   const supabase = await createClient();
 
-  // UUID で来た場合（旧ブックマーク・インデックス済み URL）は slug にリダイレクト
-  if (UUID_RE.test(slug)) {
-    const { data } = await supabase
-      .from("appliances")
-      .select("slug")
-      .eq("id", slug)
-      .maybeSingle();
-    if (!data) notFound();
-    permanentRedirect(`/appliance/${data.slug}`);
-  }
-
+  // 正規 slug で検索。見つかった場合はそのまま描画（slug が UUID 形式でも自己参照しない）。
   const { data: appliance } = await supabase
     .from("appliances")
     .select(
@@ -98,7 +88,18 @@ export default async function AppliancePage({
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!appliance) notFound();
+  // slug で見つからず UUID 形式なら旧 URL とみなして canonical slug へ 308 リダイレクト。
+  if (!appliance) {
+    if (UUID_RE.test(slug)) {
+      const { data: byId } = await supabase
+        .from("appliances")
+        .select("slug")
+        .eq("id", slug)
+        .maybeSingle();
+      if (byId && byId.slug !== slug) permanentRedirect(`/appliance/${byId.slug}`);
+    }
+    notFound();
+  }
   const a = appliance as ApplianceRow;
 
   const { data: partsData } = await supabase
